@@ -69,15 +69,71 @@ Instead of manually downloading WASM, we can use the official NPM package which 
 
 ---
 
-### Phase 2: Harper Integration
-**Goal**: Install and configure Harper.js for instant grammar checking
+### Phase 2: Basic UI Menu (Ghost Mode) - **MOVED UP**
+**Goal**: Build the visual menu that appears on text selection (no backend wiring yet)
+
+**Tasks**:
+- [ ] Implement selection detection in content script
+- [ ] Add 400ms delay (avoid false triggers on copy/paste)
+- [ ] Create floating button menu HTML/CSS
+- [ ] Position menu near text selection
+- [ ] Add menu items: "Fix Grammar", "Improve Writing", "Rewrite", "Humanize", etc.
+- [ ] Add visual feedback (hover states, click animations)
+- [ ] Wire up basic click handlers (console.log for now)
+
+**Why This Phase is Early**:
+- Shows immediate visual progress
+- Allows UX testing without backend complexity
+- Can iterate on positioning/design independently
+- Users see the extension "working" even if features aren't wired up yet
+
+**UX Flow** (Visual only at this stage):
+1. User selects text
+2. Waits 400ms (filters out quick copy actions)
+3. Floating menu appears near selection with placeholder buttons
+4. Buttons log actions to console (no real functionality yet)
+
+**Deliverable**: Working UI that appears on text selection with placeholder actions
+
+---
+
+### Phase 3: Background Service Foundation
+**Goal**: Set up message routing between content script and background worker
+
+**Tasks**:
+- [ ] Create `background.js` service worker
+- [ ] Implement message router (handle actions from content script)
+- [ ] Set up message API structure
+- [ ] Add error handling for message passing
+- [ ] Test bi-directional communication
+
+**Message API Structure**:
+```javascript
+// From content script → background
+{ action: "FIX_GRAMMAR", text: "..." }
+{ action: "HUMANIZE", text: "..." }
+{ action: "REWRITE", text: "..." }
+
+// From background → content script
+{ success: true, result: "...", method: "..." }
+{ success: false, error: "..." }
+```
+
+**Deliverable**: Communication bridge ready for backend integrations
+
+---
+
+### Phase 4: Harper Integration
+**Goal**: Wire up grammar checking to the "Fix Grammar" button
 
 **Tasks**:
 - [ ] Install `harper.js` via NPM
 - [ ] Create build script to bundle WASM
+- [ ] Load Harper in background service
 - [ ] Implement grammar check API wrapper
+- [ ] Wire "Fix Grammar" button to Harper
+- [ ] Create error highlighting/replacement system
 - [ ] Test WASM loading in extension context
-- [ ] Create error highlighting system
 
 **Technical Details**:
 ```javascript
@@ -89,19 +145,20 @@ const errors = await checker.lint(text);
 // errors: [{ span: [start, end], message: "...", ... }]
 ```
 
-**Deliverable**: Background service that returns grammar errors in < 50ms
+**Deliverable**: "Fix Grammar" button works with < 50ms response time
 
 ---
 
-### Phase 3: Gemini Nano Integration
-**Goal**: Connect Chrome's built-in AI for humanization features
+### Phase 5: Gemini Nano Integration
+**Goal**: Wire up AI features to "Humanize" and "Rewrite" buttons
 
 **Tasks**:
-- [ ] Implement `humanizeText()` function using `window.ai`
+- [ ] Implement capability detection for Gemini Nano
+- [ ] Create `humanizeText()` function using `window.ai`
 - [ ] Configure system prompt for de-AI rewriting
 - [ ] Add session management (create/destroy)
-- [ ] Implement capability detection
-- [ ] Create fallback to heuristic mode
+- [ ] Wire "Humanize" and "Rewrite" buttons to Gemini Nano
+- [ ] Implement graceful fallback to heuristics
 
 **System Prompt**:
 ```
@@ -110,11 +167,11 @@ human and less robotic. Remove jargon like 'delve', 'leverage', 'tapestry'.
 Keep the meaning identical.
 ```
 
-**Deliverable**: Background service that humanizes text in ~500ms
+**Deliverable**: AI features working in ~500ms when Gemini Nano available
 
 ---
 
-### Phase 4: Heuristic Fallback
+### Phase 6: Heuristic Fallback
 **Goal**: Provide basic de-AI without requiring Gemini Nano
 
 **Tasks**:
@@ -122,6 +179,7 @@ Keep the meaning identical.
 - [ ] Implement pattern matching replacements
 - [ ] Add passive voice detection (optional)
 - [ ] Test fallback accuracy
+- [ ] Auto-switch to heuristics when Gemini Nano unavailable
 
 **Dictionary** (expandable):
 - delve → dig
@@ -136,26 +194,26 @@ Keep the meaning identical.
 
 ---
 
-### Phase 5: Content Script (Ghost Mode UI)
-**Goal**: Inject floating menu that appears on text selection
+### Phase 7: Result Preview & Accept/Reject UI
+**Goal**: Add interactive preview for text replacements
 
 **Tasks**:
-- [ ] Implement selection detection
-- [ ] Add 600ms delay (avoid false triggers on copy/paste)
-- [ ] Create floating button menu
-- [ ] Position menu near selection
-- [ ] Wire up button actions (Humanize, Fix Grammar, Rewrite)
-- [ ] Add visual feedback (loading states)
+- [ ] Implement diff view (strikethrough original, highlight new text)
+- [ ] Add Accept/Reject/Retry buttons
+- [ ] Implement DOM replacement on Accept
+- [ ] Add undo functionality (optional)
+- [ ] Smooth transitions for preview appearance
+- [ ] Handle edge cases (selection disappears, page navigation)
 
-**UX Flow** (General):
-1. User selects text
-2. Waits 600ms (filters out quick copy actions)
-3. Floating menu appears near selection
-4. User clicks "Humanize" or "Fix Grammar"
-5. Extension processes text
-6. Replacement text appears with "Accept/Reject" option
+**Preview UI Flow**:
+1. User clicks "Fix Grammar" or "Humanize"
+2. Loading spinner appears
+3. Result comes back from background
+4. Preview overlay shows: `Original → Rewritten`
+5. User clicks Accept → Text replaced in DOM
+6. User clicks Reject → Original text remains
 
-**Deliverable**: Non-intrusive UI that feels premium
+**Deliverable**: Professional preview/accept workflow
 
 ---
 
@@ -413,7 +471,7 @@ function rewriteWithHeuristics(text) {
 
 ---
 
-### Phase 6: Liquid Design System
+### Phase 8: Liquid Design System
 **Goal**: Create high-end visual design matching Linear/Vercel aesthetic
 
 **Tasks**:
@@ -422,7 +480,7 @@ function rewriteWithHeuristics(text) {
 - [ ] Create color system (neutral palette)
 - [ ] Add hover states with glow effects
 - [ ] Ensure dark mode compatibility
-- [ ] Test across different websites
+- [ ] Test menu appearance across different websites (Gmail, Google Docs, Twitter, etc.)
 
 **Design Principles**:
 - Minimal footprint
@@ -435,57 +493,36 @@ function rewriteWithHeuristics(text) {
 
 ---
 
-### Phase 7: Settings & Popup
-**Goal**: Simple configuration UI for BYOK (Bring Your Own Key)
+### Phase 9: Settings & Popup
+**Goal**: Simple configuration UI for extension management
 
 **Tasks**:
-- [ ] Create `popup.html` with settings form
-- [ ] Add API key input (for future external AI fallback)
-- [ ] Add enable/disable toggle
+- [ ] Create `popup.html` with status dashboard
 - [ ] Show Harper status (loaded/error)
-- [ ] Show Gemini Nano availability
+- [ ] Show Gemini Nano availability (AI Mode vs Basic Mode)
+- [ ] Add enable/disable toggle
 - [ ] Add keyboard shortcut configuration
+- [ ] Display capability detection results
+- [ ] Add "Learn More" links for enabling AI features
 
 **Settings Storage**:
 ```javascript
 chrome.storage.sync.set({
   enabled: true,
-  apiKey: '',
+  selectionDelay: 400, // ms
   keyboardShortcut: 'Ctrl+Shift+H'
 });
 ```
 
-**Deliverable**: Clean settings interface
+**Popup UI Modes**:
+- **AI Mode**: Green badge "✨ AI" - All features available
+- **Basic Mode**: Gray badge "📝 BASIC" - Grammar only, with upgrade prompt
+
+**Deliverable**: Clean settings interface with capability status
 
 ---
 
-### Phase 8: Background Service (Brain)
-**Goal**: Central coordinator for Harper + Gemini Nano
-
-**Tasks**:
-- [ ] Create `background.js` service worker
-- [ ] Load Harper WASM on extension startup
-- [ ] Initialize Gemini Nano session
-- [ ] Handle message routing from content script
-- [ ] Implement error handling and retries
-- [ ] Add performance monitoring
-
-**Message API**:
-```javascript
-// CHECK_GRAMMAR
-{ action: "CHECK_GRAMMAR", text: "..." }
-→ { success: true, errors: [...] }
-
-// HUMANIZE
-{ action: "HUMANIZE", text: "..." }
-→ { success: true, text: "..." }
-```
-
-**Deliverable**: Reliable background service
-
----
-
-### Phase 9: Testing & Optimization
+### Phase 10: Testing & Optimization
 **Goal**: Ensure reliability and performance
 
 **Tasks**:
@@ -506,7 +543,7 @@ chrome.storage.sync.set({
 
 ---
 
-### Phase 10: Documentation & Packaging
+### Phase 11: Documentation & Packaging
 **Goal**: Prepare for distribution
 
 **Tasks**:
@@ -514,9 +551,10 @@ chrome.storage.sync.set({
 - [ ] Add installation instructions
 - [ ] Document keyboard shortcuts
 - [ ] Create privacy policy
-- [ ] Add screenshots/demo GIF
+- [ ] Add screenshots/demo GIF of the UI menu in action
 - [ ] Write Chrome Web Store description
 - [ ] Create promotional materials
+- [ ] Document Gemini Nano setup guide
 
 **Distribution**:
 - Load unpacked (dev mode)
