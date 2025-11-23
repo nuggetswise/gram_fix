@@ -23,7 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
-    "stripe": "^14.10.0"
+    "stripe": "^14.10.0",
+    "harper.js": "^2.0.0"
   },
   "devDependencies": {
     "@vercel/node": "^3.0.12",
