@@ -12,7 +12,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │ BACKGROUND INITIALIZATION (background.js)                   │
 │ ┌──────────────────┐      ┌────────────────────┐           │
-│ │ Load Harper WASM │      │ Check Gemini Nano  │           │
+│ │ Load Harper WASM │      │ Check Cloud API    │           │
 │ │   < 100ms        │      │     ~ 200ms        │           │
 │ └────┬─────────────┘      └──────┬─────────────┘           │
 │      │                            │                         │
@@ -24,15 +24,15 @@
        │    │                                            │
        │    ▼                                            ▼
        │  ┌────────────────────┐              ┌─────────────────────┐
-       │  │ Gemini Nano Ready  │              │ Gemini Nano Missing │
-       │  │ (Chrome Canary     │              │ (Stable Chrome or   │
-       │  │  or Dev Channel)   │              │  not enabled)       │
+       │  │ API Connected      │              │ API Error/Offline   │
+       │  │ (Credits Available)│              │ (No Connection)     │
+       │  │                    │              │                     │
        │  └────────┬───────────┘              └──────────┬──────────┘
        │           │                                     │
        │           ▼                                     ▼
        │  ┌──────────────────────┐           ┌─────────────────────┐
-       │  │ MODE: AI Enhanced    │           │ MODE: Basic Grammar │
-       │  │ Badge: "✨ AI"       │           │ Badge: "📝 BASIC"  │
+       │  │ MODE: Full Featured  │           │ MODE: Basic Grammar │
+       │  │ Badge: "✨ READY"    │           │ Badge: "📝 BASIC"  │
        │  └──────────┬───────────┘           └──────────┬──────────┘
        │             │                                   │
        └─────────────┴───────────────┬───────────────────┘
@@ -53,22 +53,22 @@
         │                           │
         ▼                           ▼
 ┌───────────────────┐    ┌──────────────────────┐
-│ AI Enhanced Mode  │    │ Basic Grammar Mode   │
+│ Full Featured     │    │ Basic Grammar Mode   │
 ├───────────────────┤    ├──────────────────────┤
 │ 🎯 Fix Grammar    │    │ 🎯 Fix Grammar       │
 │ ✨ Humanize       │    │ 📖 Check Spelling    │
-│ ✍️  Rewrite       │    │ ⚙️  Enable AI        │
-│ 📋 Copy           │    │    (upgrade Chrome)  │
+│ ✍️  Rewrite       │    │ 💳 Get AI Features   │
+│ 📋 Copy           │    │    (sign up)         │
 └───────┬───────────┘    └──────────┬───────────┘
         │                           │
-        │ User clicks "Humanize"    │ User clicks "Enable AI"
+        │ User clicks "Humanize"    │ User clicks "Get AI Features"
         ▼                           ▼
 ┌──────────────────┐      ┌─────────────────────────┐
-│ Gemini Nano      │      │ INFO POPUP:             │
+│ Cloud API        │      │ INFO POPUP:             │
 │ Processing...    │      │ "AI features require    │
-│ ~ 500ms          │      │  Chrome Canary/Dev      │
-└────────┬─────────┘      │  with Gemini Nano       │
-         │                │  enabled. Learn more >" │
+│ ~ 500ms-1s       │      │  API connection.        │
+└────────┬─────────┘      │  Sign up for free       │
+         │                │  credits. Learn more >" │
          ▼                └─────────────────────────┘
 ┌──────────────────┐
 │ Show Result      │
@@ -90,16 +90,16 @@
                            │
                            ▼
                   ┌─────────────────┐
-                  │ Check Gemini    │
-                  │ Nano API        │
+                  │ Check Cloud API │
+                  │ Connectivity    │
                   └────────┬────────┘
                            │
         ┏━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┓
         ▼                                    ▼
 ┌──────────────────┐              ┌───────────────────┐
-│ capabilities =   │              │ capabilities =    │
-│  'readily'       │              │  'no' or          │
-│                  │              │  'after-download' │
+│ API Connected    │              │ API Offline or    │
+│ Credits > 0      │              │ No Credits        │
+│                  │              │                   │
 └────────┬─────────┘              └──────────┬────────┘
          │                                   │
          ▼                                   ▼
@@ -108,9 +108,9 @@
 │                    │          │                     │
 │ Features:          │          │ Features:           │
 │ ✅ Grammar (Harper)│          │ ✅ Grammar (Harper) │
-│ ✅ Humanize (Nano) │          │ ❌ Humanize         │
-│ ✅ Rewrite (Nano)  │          │ ❌ Rewrite          │
-│                    │          │ ℹ️  Upgrade prompt  │
+│ ✅ Humanize (API)  │          │ ❌ Humanize         │
+│ ✅ Rewrite (API)   │          │ ❌ Rewrite          │
+│                    │          │ ℹ️  Sign up prompt  │
 └────────┬───────────┘          └──────────┬──────────┘
          │                                 │
          └─────────┬───────────────────────┘
@@ -133,7 +133,7 @@
 ## User Touchpoints & Feedback Mechanisms
 
 ### 1. **Extension Badge** (Always Visible)
-- **AI Mode**: Green badge with "✨ AI"
+- **AI Mode**: Green badge with "✨ READY"
 - **Basic Mode**: Gray badge with "📝 BASIC"
 - **Error State**: Red badge with "⚠️"
 
@@ -144,25 +144,28 @@
 ├─────────────────────────────────────────┤
 │                                         │
 │ ✅ Grammar checking: ACTIVE             │
-│    Powered by Harper (local)            │
+│    Powered by Harper (local, unlimited) │
 │                                         │
-│ ⚠️  AI features: NOT AVAILABLE          │
-│    Requires Chrome Canary/Dev           │
+│ 🎁 AI features: FREE TRIAL              │
+│    100 free credits to start!           │
 │                                         │
-│ [ Learn How to Enable AI ]  [Got It]   │
+│ [ Try AI Now ]  [Maybe Later]          │
 └─────────────────────────────────────────┘
 ```
 
 ### 3. **Popup UI** (Click Extension Icon)
 
-**AI Mode:**
+**AI Mode (With Credits):**
 ```
 ┌────────────────────────────┐
-│ GhostWrite     [✨ AI Mode]│
+│ GhostWrite    [✨ AI Ready]│
 ├────────────────────────────┤
 │ Status:                    │
-│ ✅ Grammar checking        │
-│ ✅ AI humanization         │
+│ ✅ Grammar (unlimited)     │
+│ ✅ AI features (cloud)     │
+│                            │
+│ Credits: 847 remaining     │
+│ [ Buy More Credits ]       │
 │                            │
 │ Usage:                     │
 │ • Select text to start     │
@@ -172,19 +175,20 @@
 └────────────────────────────┘
 ```
 
-**Basic Mode:**
+**Basic Mode (No Credits/Offline):**
 ```
 ┌────────────────────────────┐
 │ GhostWrite   [📝 BASIC Mode]│
 ├────────────────────────────┤
 │ Status:                    │
-│ ✅ Grammar checking        │
+│ ✅ Grammar (unlimited)     │
 │ ⚠️  AI features disabled   │
 │                            │
-│ AI requires Chrome Canary  │
-│ with Gemini Nano enabled   │
+│ Get AI Features:           │
+│ • 100 free credits         │
+│ • $5-10 for 1000 credits   │
 │                            │
-│ [Setup Guide] [Got It]     │
+│ [ Sign Up Free ]  [Later] │
 └────────────────────────────┘
 ```
 
@@ -195,14 +199,16 @@ If user in Basic Mode clicks where "Humanize" would be:
 ┌─────────────────────────────────────┐
 │ ✨ AI Feature Not Available         │
 ├─────────────────────────────────────┤
-│ This requires Gemini Nano.          │
+│ AI features require cloud API       │
+│ connection (Gemini or OpenAI).      │
 │                                     │
-│ Setup (1 min):                      │
-│ 1. Install Chrome Canary            │
-│ 2. Enable AI flags                  │
-│ 3. Restart browser                  │
+│ Get started:                        │
+│ 🎁 100 FREE credits to try          │
+│ 💰 1000 credits for $5-10/month     │
 │                                     │
-│ [Step-by-Step Guide]  [Maybe Later] │
+│ Privacy: Your text stays encrypted  │
+│                                     │
+│ [ Get Free Credits ]  [Maybe Later] │
 └─────────────────────────────────────┘
 ```
 
@@ -210,11 +216,11 @@ If user in Basic Mode clicks where "Humanize" would be:
 
 ## Edge Cases & Error Handling
 
-### Case 1: Gemini Nano Downloads in Background
+### Case 1: API Rate Limit Reached
 ```javascript
-capabilities.available === 'after-download'
-// Show: "AI features downloading... (may take 5-10 min)"
-// Poll every 30s until ready
+// Response: 429 Too Many Requests
+// Show: "API rate limit reached. Try again in 30s"
+// Fallback: Queue requests or show retry timer
 ```
 
 ### Case 2: Harper WASM Fails to Load
@@ -224,18 +230,33 @@ capabilities.available === 'after-download'
 // Popup message: "Grammar checking unavailable. Try reinstalling extension."
 ```
 
-### Case 3: User on Unsupported Browser (Firefox, Safari)
+### Case 3: Network Offline
 ```javascript
-// Detect: !chrome || !chrome.runtime
-// Show: "GhostWrite requires Chrome/Edge/Brave"
-// Offer: Download link to Chrome Canary
+// Detect: !navigator.onLine
+// Show: "Offline mode - Grammar checking only"
+// Cache: Queue AI requests for when connection restored
 ```
 
-### Case 4: Mid-Session Capability Change
+### Case 4: Credits Depleted Mid-Session
 ```javascript
-// Listen for Gemini Nano becoming available
-// Auto-upgrade UI from Basic → AI mode
-// Show celebration toast: "🎉 AI features now available!"
+// Show notification: "⚠️ Credits running low (10 remaining)"
+// When 0: "Credits depleted. Buy more to continue using AI features"
+// Auto-downgrade UI to Basic Mode
+```
+
+### Case 5: API Fallback (Gemini → OpenAI)
+```javascript
+// Primary: Gemini API fails
+// Fallback: Automatically try OpenAI API
+// Log: Track which API used for analytics
+// User feedback: Transparent about which service processing request
+```
+
+### Case 6: API Service Outage
+```javascript
+// Both Gemini and OpenAI unavailable
+// Show: "AI services temporarily unavailable. Grammar checking still works!"
+// Retry: Exponential backoff (5s, 15s, 45s)
 ```
 
 ---
@@ -244,35 +265,70 @@ capabilities.available === 'after-download'
 
 | Action | Target Time | User Feedback |
 |--------|-------------|---------------|
-| Capability check | < 200ms | Extension badge updates |
+| API connectivity check | < 200ms | Extension badge updates |
 | Harper load | < 100ms | "Grammar ready" in popup |
-| Gemini Nano init | < 1s | "AI ready" badge |
+| Cloud API initialization | < 500ms | "AI ready" badge |
 | Menu appearance | < 100ms after 400ms delay | Smooth fade-in animation |
 | Grammar check | < 50ms | Instant red/green squiggles |
-| AI humanization | < 1s | Loading spinner |
+| AI humanization (Gemini) | < 1s | Loading spinner with progress |
+| AI humanization (OpenAI fallback) | < 2s | "Using backup service..." |
+
+---
+
+## API Architecture
+
+### Primary: Gemini API
+- **Purpose**: Main AI processing (humanize, rewrite, etc.)
+- **Advantages**: Fast response times, cost-effective
+- **Rate Limits**: Monitor and handle gracefully
+
+### Secondary: OpenAI API
+- **Purpose**: Fallback when Gemini unavailable
+- **Use Cases**: Service outages, rate limit exceeded
+- **Failover**: Automatic, transparent to user
+
+### Credit System
+- **Free Tier**: 100 credits on sign-up
+- **Paid Tier**: 1000 credits for $5-10/month
+- **Usage**: Each AI action (humanize, rewrite) costs 1 credit
+- **Storage**: Credits tracked server-side, synced to extension
 
 ---
 
 ## Accessibility Considerations
 
 1. **Keyboard Navigation**: All menu items accessible via Tab/Enter
-2. **Screen Readers**: Announce capability status changes
+2. **Screen Readers**: Announce capability status changes and credit balance
 3. **High Contrast**: Ensure badge colors visible in all themes
 4. **Motion Sensitivity**: Respect `prefers-reduced-motion` for animations
+5. **Network Indicators**: Clear visual feedback for API processing states
 
 ---
 
 ## Testing Checklist
 
-- [ ] Fresh install on Chrome Stable (expect Basic Mode)
-- [ ] Fresh install on Chrome Canary with Gemini Nano (expect AI Mode)
-- [ ] Toggle Gemini Nano flags while extension running
+- [ ] Fresh install with no API credentials (expect Basic Mode)
+- [ ] Fresh install with valid API credentials (expect AI Mode)
 - [ ] Test with Harper WASM blocked by CSP
 - [ ] Test on slow network (Harper bundle download)
 - [ ] Test badge visibility in light/dark theme
-- [ ] Test popup UI with window.ai = undefined
-- [ ] Test graceful degradation (AI → Basic after API error)
+- [ ] Test API connectivity failure scenarios
+- [ ] Test graceful degradation (Gemini fails → OpenAI fallback)
+- [ ] Test credit depletion workflow
+- [ ] Test offline mode (grammar only)
+- [ ] Test rate limit handling
+- [ ] Test both Gemini and OpenAI API failures
 
 ---
 
-*Last Updated: 2025-11-22*
+## Privacy & Security Notes
+
+- **Grammar Checking**: 100% local via Harper WASM (no data sent)
+- **AI Features**: Text sent to cloud APIs (Gemini/OpenAI) encrypted in transit
+- **User Control**: Clear opt-in for cloud features
+- **Data Retention**: No persistent storage of user text on servers
+- **Transparency**: Always indicate when cloud processing occurs
+
+---
+
+*Last Updated: 2025-11-23*

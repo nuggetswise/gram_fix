@@ -28,7 +28,7 @@ A privacy-first Chrome extension that provides instant grammar checking (free ti
 💰 1000 credits for $5-10/month
 ```
 
-**Key Decision**: No local AI (Gemini Nano) to avoid 2GB+ downloads. Cloud API keeps extension lightweight and fast to install.
+**Key Decision**: No local AI to avoid 2GB+ downloads. Cloud API (Gemini API primary, OpenAI fallback) keeps extension lightweight and fast to install.
 
 ---
 
@@ -74,10 +74,12 @@ See "Humanize" button → Try 100 free credits
 - **Memory**: < 10MB
 
 ### Layer 2: AI Enhancement (PAID - Cloud API)
-- **Engine**: Cloud AI API (OpenAI/Anthropic/Google)
-- **Speed**: ~1-2s (network + inference)
+- **Primary Engine**: Gemini API (Google's cloud AI)
+- **Fallback Engine**: OpenAI API (automatic failover)
+- **Speed**: ~500ms-1s (Gemini), ~1-2s (OpenAI fallback)
 - **Privacy**: User opts-in, aware of cloud processing
 - **Features**: Humanize, Rewrite, Improve Writing
+- **Architecture**: NOT Bring Your Own Key (BYOK) - service provides API access
 
 ### Layer 3: Backend (PAID - Credit Management)
 - **Auth**: Simple API key system (no passwords)
@@ -292,8 +294,15 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'No credits' }), { status: 402 });
   }
 
-  // Call OpenAI/Anthropic/Google
-  const result = await callAI(text, action);
+  // Try Gemini API first (primary)
+  let result;
+  try {
+    result = await callGeminiAPI(text, action);
+  } catch (error) {
+    // Fallback to OpenAI if Gemini fails
+    console.log('Gemini API failed, falling back to OpenAI');
+    result = await callOpenAI(text, action);
+  }
 
   // Deduct credit
   await supabase
@@ -581,15 +590,18 @@ Paid tier: 1000+ AI credits/month for advanced features
 **Privacy Policy Key Points**:
 ```
 FREE TIER:
-- 100% local processing
+- 100% local processing via Harper WASM
 - Zero data collection
 - No network calls
+- No account required
 
 PAID TIER:
 - Cloud API for AI features (user opts-in)
-- Text sent to OpenAI/Anthropic for processing
-- No storage of user text
-- Credit usage logged (no content)
+- Text sent to Gemini API (primary) or OpenAI (fallback) for processing
+- Service provides API access (NOT Bring Your Own Key)
+- No storage of user text on our servers
+- Credit usage logged (no content stored)
+- All transmission encrypted (HTTPS)
 ```
 
 **Deliverable**: Production-ready extension
@@ -678,26 +690,27 @@ Year 2:
 ```
 
 **Costs**:
-- Cloud API: ~$0.002 per humanization (GPT-4o-mini)
-- 1000 credits = $2 in API costs
-- Gross margin: ~73% ($5 tier), ~87% ($10 tier)
+- Cloud API (Gemini): ~$0.001 per humanization (primary, cost-effective)
+- Cloud API (OpenAI): ~$0.002 per humanization (fallback only)
+- 1000 credits = ~$1-2 in API costs (mostly Gemini)
+- Gross margin: ~80% ($5 tier), ~90% ($10 tier)
 - Stripe fees: 2.9% + $0.30
 - Hosting: ~$20/month (Vercel + Supabase free tiers)
 
 **Unit Economics** ($5/mo tier):
 ```
 Revenue: $5.00
-- API costs: $2.00
+- API costs: $1.00 (Gemini primary)
 - Stripe fees: $0.45
-= Net: $2.55 (51% margin)
+= Net: $3.55 (71% margin)
 ```
 
 **Unit Economics** ($10/mo tier):
 ```
 Revenue: $10.00
-- API costs: $6.00 (3000 credits)
+- API costs: $3.00 (3000 credits, Gemini primary)
 - Stripe fees: $0.59
-= Net: $3.41 (34% margin)
+= Net: $6.41 (64% margin)
 ```
 
 **Optimization**: Encourage $10 tier (better margin + value)
@@ -780,5 +793,5 @@ Revenue: $10.00
 
 ---
 
-*Last Updated: 2025-11-22*
-*Version: 2.0 - Simplified 2-Tier Model*
+*Last Updated: 2025-11-23*
+*Version: 2.1 - Cloud API Architecture (Gemini Primary, OpenAI Fallback)*

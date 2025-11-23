@@ -1,6 +1,6 @@
 /**
  * GhostWrite Capability Manager
- * Handles detection and management of Harper WASM and Gemini Nano availability
+ * Handles detection and management of Harper WASM and Cloud API availability
  * Provides clear user feedback about feature availability
  */
 
@@ -12,9 +12,11 @@ class CapabilityManager {
         error: null,
         loadTime: null
       },
-      geminiNano: {
-        available: false,
-        status: 'unknown', // 'readily' | 'after-download' | 'no' | 'unknown'
+      cloudAPI: {
+        connected: false,
+        status: 'unknown', // 'connected' | 'offline' | 'error' | 'unknown'
+        credits: 0,
+        tier: 'free', // 'free' | 'trial' | 'paid'
         error: null,
         checkTime: null
       },
@@ -23,7 +25,8 @@ class CapabilityManager {
 
     this.listeners = new Set();
     this.harperInstance = null;
-    this.geminiSession = null;
+    this.apiKey = null;
+    this.apiEndpoint = 'https://your-api-endpoint.com'; // TODO: Configure this
   }
 
   /**
@@ -33,10 +36,13 @@ class CapabilityManager {
   async initialize() {
     console.log('[GhostWrite] Initializing capabilities...');
 
+    // Load API key from storage
+    await this.loadAPIKey();
+
     // Run checks in parallel for speed
-    const [harperResult, geminiResult] = await Promise.allSettled([
+    const [harperResult, apiResult] = await Promise.allSettled([
       this.initHarper(),
-      this.checkGeminiNano()
+      this.checkCloudAPI()
     ]);
 
     // Update state based on results
@@ -46,10 +52,10 @@ class CapabilityManager {
       this.state.harper.error = harperResult.reason?.message || 'Failed to load';
     }
 
-    if (geminiResult.status === 'fulfilled') {
-      this.state.geminiNano = geminiResult.value;
+    if (apiResult.status === 'fulfilled') {
+      this.state.cloudAPI = apiResult.value;
     } else {
-      this.state.geminiNano.error = geminiResult.reason?.message || 'Failed to check';
+      this.state.cloudAPI.error = apiResult.reason?.message || 'Failed to check';
     }
 
     // Determine overall mode
@@ -61,6 +67,36 @@ class CapabilityManager {
 
     console.log('[GhostWrite] Initialization complete:', this.state);
     return this.state;
+  }
+
+  /**
+   * Load API key from chrome.storage
+   */
+  async loadAPIKey() {
+    try {
+      const result = await chrome.storage.local.get(['apiKey']);
+      this.apiKey = result.apiKey || null;
+    } catch (error) {
+      console.error('[GhostWrite] Failed to load API key:', error);
+    }
+  }
+
+  /**
+   * Save API key to chrome.storage
+   * @param {string} apiKey - API key to save
+   */
+  async saveAPIKey(apiKey) {
+    try {
+      await chrome.storage.local.set({ apiKey });
+      this.apiKey = apiKey;
+      // Re-check API availability
+      await this.checkCloudAPI();
+      this.updateMode();
+      await this.updateBadge();
+      this.notifyListeners();
+    } catch (error) {
+      console.error('[GhostWrite] Failed to save API key:', error);
+    }
   }
 
   /**
@@ -101,62 +137,73 @@ class CapabilityManager {
   }
 
   /**
-   * Check Gemini Nano availability
-   * @returns {Promise<Object>} Gemini Nano state
+   * Check Cloud API availability and credits
+   * @returns {Promise<Object>} Cloud API state
    */
-  async checkGeminiNano() {
+  async checkCloudAPI() {
     const startTime = performance.now();
 
+    // If no API key, user is in free tier (grammar only)
+    if (!this.apiKey) {
+      return {
+        connected: false,
+        status: 'offline',
+        credits: 0,
+        tier: 'free',
+        error: 'No API key configured',
+        checkTime: Math.round(performance.now() - startTime)
+      };
+    }
+
     try {
-      // Check if window.ai exists
-      if (!self.ai?.languageModel) {
+      // Check API connectivity and fetch credit balance
+      const response = await fetch(`${this.apiEndpoint}/api/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const checkTime = performance.now() - startTime;
+
+      return {
+        connected: true,
+        status: 'connected',
+        credits: data.credits || 0,
+        tier: data.tier || 'trial',
+        error: null,
+        checkTime: Math.round(checkTime)
+      };
+    } catch (error) {
+      console.error('[GhostWrite] Cloud API check failed:', error);
+
+      // Check if offline
+      if (!navigator.onLine) {
         return {
-          available: false,
-          status: 'no',
-          error: 'window.ai not found (use Chrome Canary)',
+          connected: false,
+          status: 'offline',
+          credits: 0,
+          tier: 'free',
+          error: 'No internet connection',
           checkTime: Math.round(performance.now() - startTime)
         };
       }
 
-      // Check capabilities
-      const capabilities = await self.ai.languageModel.capabilities();
-
-      const checkTime = performance.now() - startTime;
-
-      // Parse status
-      const status = capabilities.available;
-      const isReady = status === 'readily';
-
       return {
-        available: isReady,
-        status: status,
-        error: isReady ? null : this.getGeminiStatusMessage(status),
-        checkTime: Math.round(checkTime)
-      };
-    } catch (error) {
-      console.error('[GhostWrite] Gemini Nano check failed:', error);
-      return {
-        available: false,
+        connected: false,
         status: 'error',
+        credits: 0,
+        tier: 'free',
         error: error.message,
         checkTime: Math.round(performance.now() - startTime)
       };
     }
-  }
-
-  /**
-   * Get user-friendly message for Gemini Nano status
-   * @param {string} status - Raw capability status
-   * @returns {string} User-friendly message
-   */
-  getGeminiStatusMessage(status) {
-    const messages = {
-      'no': 'Not available in this browser. Use Chrome Canary.',
-      'after-download': 'Downloading AI model (5-10 min). Check back soon.',
-      'unknown': 'Checking AI availability...',
-      'error': 'Error checking AI availability.'
-    };
-    return messages[status] || 'Unknown status';
   }
 
   /**
@@ -168,7 +215,7 @@ class CapabilityManager {
       return;
     }
 
-    if (this.state.geminiNano.available) {
+    if (this.state.cloudAPI.connected && this.state.cloudAPI.credits > 0) {
       this.state.mode = 'AI_READY';
     } else {
       this.state.mode = 'BASIC_ONLY';
@@ -181,9 +228,9 @@ class CapabilityManager {
   async updateBadge() {
     const badgeConfig = {
       'AI_READY': {
-        text: '✨ AI',
+        text: '✨',
         color: '#10b981', // Green
-        title: 'GhostWrite (AI Mode)\nGrammar + Humanization active'
+        title: `GhostWrite (AI Ready)\nGrammar + AI Features\n${this.state.cloudAPI.credits} credits remaining`
       },
       'BASIC_ONLY': {
         text: '📝',
@@ -229,137 +276,125 @@ class CapabilityManager {
             : `Error: ${this.state.harper.error}`
         },
         humanize: {
-          enabled: this.state.geminiNano.available,
+          enabled: this.state.cloudAPI.connected && this.state.cloudAPI.credits > 0,
           label: 'AI Humanization',
-          detail: this.state.geminiNano.available
-            ? `Ready (Gemini Nano)`
-            : this.state.geminiNano.error
+          detail: this.state.cloudAPI.connected
+            ? `Ready (${this.state.cloudAPI.credits} credits)`
+            : this.state.cloudAPI.error
         },
         rewrite: {
-          enabled: this.state.geminiNano.available,
+          enabled: this.state.cloudAPI.connected && this.state.cloudAPI.credits > 0,
           label: 'AI Rewrite',
-          detail: this.state.geminiNano.available
-            ? `Ready (Gemini Nano)`
-            : this.state.geminiNano.error
+          detail: this.state.cloudAPI.connected
+            ? `Ready (${this.state.cloudAPI.credits} credits)`
+            : this.state.cloudAPI.error
         }
       },
-      upgradePrompt: !this.state.geminiNano.available ? {
-        title: 'Enable AI Features',
-        message: this.state.geminiNano.error,
-        action: 'SHOW_SETUP_GUIDE'
+      credits: {
+        remaining: this.state.cloudAPI.credits,
+        tier: this.state.cloudAPI.tier
+      },
+      upgradePrompt: !this.state.cloudAPI.connected || this.state.cloudAPI.credits === 0 ? {
+        title: this.state.cloudAPI.credits === 0 ? 'Credits Depleted' : 'Enable AI Features',
+        message: this.state.cloudAPI.credits === 0
+          ? 'Buy more credits to continue using AI features'
+          : this.state.cloudAPI.error || 'Sign up to get 100 free credits',
+        action: this.state.cloudAPI.credits === 0 ? 'BUY_CREDITS' : 'SIGN_UP'
       } : null
     };
   }
 
   /**
-   * Create Gemini Nano session for humanization
-   * @returns {Promise<Object>} Session object
+   * Humanize text using Cloud API (Gemini primary, OpenAI fallback)
+   * @param {string} text - Text to humanize
+   * @returns {Promise<string>} Humanized text
    */
-  async createGeminiSession() {
-    if (!this.state.geminiNano.available) {
-      throw new Error('Gemini Nano not available');
+  async humanizeText(text) {
+    // Check if API available
+    if (!this.state.cloudAPI.connected || this.state.cloudAPI.credits < 1) {
+      throw new Error('No credits available. Please purchase credits to use AI features.');
     }
 
     try {
-      // Destroy old session if exists
-      if (this.geminiSession) {
-        this.geminiSession.destroy();
-      }
-
-      // Create new session with system prompt
-      this.geminiSession = await self.ai.languageModel.create({
-        systemPrompt: `You are a professional editor. Rewrite text to sound more human and less robotic.
-
-Rules:
-- Remove AI jargon: "delve", "leverage", "tapestry", "underscore", "testament", "foster"
-- Simplify complex sentences
-- Use active voice
-- Keep the original meaning
-- Match the original tone (formal/casual)
-- Return ONLY the rewritten text, no explanations`
+      const response = await fetch(`${this.apiEndpoint}/api/humanize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          text,
+          action: 'humanize'
+        })
       });
 
-      return this.geminiSession;
+      if (response.status === 402) {
+        throw new Error('No credits remaining');
+      }
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Update credit balance
+      this.state.cloudAPI.credits = data.creditsRemaining || this.state.cloudAPI.credits - 1;
+      this.updateMode();
+      await this.updateBadge();
+      this.notifyListeners();
+
+      return data.result;
     } catch (error) {
-      console.error('[GhostWrite] Gemini session creation failed:', error);
+      console.error('[GhostWrite] Humanization failed:', error);
       throw error;
     }
   }
 
   /**
-   * Humanize text using Gemini Nano
-   * @param {string} text - Text to humanize
-   * @returns {Promise<string>} Humanized text
+   * Rewrite text using Cloud API
+   * @param {string} text - Text to rewrite
+   * @returns {Promise<string>} Rewritten text
    */
-  async humanizeText(text) {
-    if (!this.state.geminiNano.available) {
-      // Fallback to heuristic
-      return this.heuristicHumanize(text);
+  async rewriteText(text) {
+    if (!this.state.cloudAPI.connected || this.state.cloudAPI.credits < 1) {
+      throw new Error('No credits available. Please purchase credits to use AI features.');
     }
 
     try {
-      // Ensure session exists
-      if (!this.geminiSession) {
-        await this.createGeminiSession();
+      const response = await fetch(`${this.apiEndpoint}/api/rewrite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          text,
+          action: 'rewrite'
+        })
+      });
+
+      if (response.status === 402) {
+        throw new Error('No credits remaining');
       }
 
-      const result = await this.geminiSession.prompt(text);
-      return result.trim();
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Update credit balance
+      this.state.cloudAPI.credits = data.creditsRemaining || this.state.cloudAPI.credits - 1;
+      this.updateMode();
+      await this.updateBadge();
+      this.notifyListeners();
+
+      return data.result;
     } catch (error) {
-      console.error('[GhostWrite] Humanization failed:', error);
-      // Fallback to heuristic
-      return this.heuristicHumanize(text);
+      console.error('[GhostWrite] Rewrite failed:', error);
+      throw error;
     }
-  }
-
-  /**
-   * Heuristic humanization (fallback when Gemini Nano unavailable)
-   * @param {string} text - Text to process
-   * @returns {string} Processed text
-   */
-  heuristicHumanize(text) {
-    const replacements = {
-      // AI jargon → simple words
-      'delve': 'dig',
-      'delves': 'digs',
-      'delving': 'digging',
-      'leverage': 'use',
-      'leverages': 'uses',
-      'leveraging': 'using',
-      'utilize': 'use',
-      'utilizes': 'uses',
-      'utilizing': 'using',
-      'tapestry': 'mix',
-      'underscore': 'highlight',
-      'underscores': 'highlights',
-      'testament': 'proof',
-      'foster': 'build',
-      'fosters': 'builds',
-      'fostering': 'building',
-      'facilitate': 'help',
-      'facilitates': 'helps',
-      'holistic': 'complete',
-      'synergy': 'teamwork',
-      'paradigm': 'model',
-      'robust': 'strong',
-      'seamless': 'smooth'
-    };
-
-    let result = text;
-
-    // Replace each word (case-insensitive, preserve original case)
-    Object.entries(replacements).forEach(([aiWord, simpleWord]) => {
-      const regex = new RegExp(`\\b${aiWord}\\b`, 'gi');
-      result = result.replace(regex, (match) => {
-        // Preserve capitalization
-        if (match[0] === match[0].toUpperCase()) {
-          return simpleWord.charAt(0).toUpperCase() + simpleWord.slice(1);
-        }
-        return simpleWord;
-      });
-    });
-
-    return result;
   }
 
   /**
@@ -415,13 +450,13 @@ Rules:
   }
 
   /**
-   * Re-check Gemini Nano availability (for polling during download)
+   * Re-check Cloud API availability (for credit balance updates)
    */
-  async recheckGeminiNano() {
-    console.log('[GhostWrite] Rechecking Gemini Nano...');
+  async recheckCloudAPI() {
+    console.log('[GhostWrite] Rechecking Cloud API...');
 
-    const geminiResult = await this.checkGeminiNano();
-    this.state.geminiNano = geminiResult;
+    const apiResult = await this.checkCloudAPI();
+    this.state.cloudAPI = apiResult;
 
     // Update mode if status changed
     const oldMode = this.state.mode;
@@ -431,8 +466,8 @@ Rules:
       console.log(`[GhostWrite] Mode changed: ${oldMode} → ${this.state.mode}`);
       await this.updateBadge();
 
-      // Show celebration if upgraded to AI mode
-      if (this.state.mode === 'AI_READY') {
+      // Show notification if mode changed
+      if (this.state.mode === 'AI_READY' && oldMode === 'BASIC_ONLY') {
         this.showUpgradeNotification();
       }
     }
@@ -449,7 +484,7 @@ Rules:
         type: 'basic',
         iconUrl: 'icon128.png',
         title: 'GhostWrite AI Features Ready! 🎉',
-        message: 'Humanization and advanced rewriting are now available.',
+        message: `You now have ${this.state.cloudAPI.credits} credits for AI features.`,
         priority: 2
       });
     } catch (error) {
@@ -458,26 +493,21 @@ Rules:
   }
 
   /**
-   * Start polling for Gemini Nano if it's downloading
+   * Show low credits warning
    */
-  startPolling() {
-    if (this.state.geminiNano.status === 'after-download') {
-      console.log('[GhostWrite] Starting Gemini Nano download poll...');
-
-      // Poll every 30 seconds
-      this.pollInterval = setInterval(() => {
-        this.recheckGeminiNano();
-      }, 30000);
-    }
-  }
-
-  /**
-   * Stop polling
-   */
-  stopPolling() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
+  async showLowCreditsWarning() {
+    if (this.state.cloudAPI.credits <= 10 && this.state.cloudAPI.credits > 0) {
+      try {
+        await chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icon128.png',
+          title: 'GhostWrite Credits Running Low ⚠️',
+          message: `Only ${this.state.cloudAPI.credits} credits remaining. Buy more to continue using AI features.`,
+          priority: 1
+        });
+      } catch (error) {
+        console.error('[GhostWrite] Notification failed:', error);
+      }
     }
   }
 
@@ -485,13 +515,6 @@ Rules:
    * Cleanup resources
    */
   destroy() {
-    this.stopPolling();
-
-    if (this.geminiSession) {
-      this.geminiSession.destroy();
-      this.geminiSession = null;
-    }
-
     this.listeners.clear();
   }
 }

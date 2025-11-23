@@ -4,7 +4,7 @@
 
 ### Core Team Roles
 - **🔧 Chrome Expert** - Extension architecture, manifest, APIs, performance
-- **🤖 AI Engineer** - Harper integration, Gemini Nano, prompt engineering for AI features
+- **🤖 AI Engineer** - Harper integration, Cloud API (Gemini/OpenAI), prompt engineering for AI features
 - **✍️ Prompt Engineer** - AI prompts for Humanize/Rewrite, quality assurance
 - **🎨 UX Team** - Interface design, user flows, accessibility, visual polish
 
@@ -785,11 +785,11 @@ Prompt Engineer → UX Team: "Done: 'Instant grammar + AI humanization. Private.
 UX Team → Chrome Expert: "Demo video shows grammar check in 5 seconds"
 Chrome Expert → UX Team: "Perfect - shows instant value"
 
-Chrome Expert → Prompt Engineer: "Added FAQ for 'Why Chrome Canary?'"
-Prompt Engineer → Chrome Expert: "Explained Gemini Nano requirement clearly"
+Chrome Expert → Prompt Engineer: "Added FAQ for 'How do AI features work?'"
+Prompt Engineer → Chrome Expert: "Explained cloud API architecture (Gemini primary, OpenAI fallback)"
 
 AI Engineer → Prompt Engineer: "Privacy policy needs API data handling section"
-Prompt Engineer → AI Engineer: "Added: 'Text sent to OpenAI, not stored'"
+Prompt Engineer → AI Engineer: "Added: 'Text sent to Gemini/OpenAI APIs, encrypted, not stored'"
 ```
 
 #### Chrome Web Store Assets:
