@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostWrite - Settings & Status</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ghost-popup">
+    <!-- Header -->
+    <div class="ghost-popup-header">
+      <h1 class="ghost-popup-title">GhostWrite</h1>
+      <div class="ghost-status-badge" id="ghost-status-badge">
+        <span class="ghost-badge-icon">⏳</span>
+        <span class="ghost-badge-text">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Feature Status Section -->
+    <div class="ghost-section">
+      <h2 class="ghost-section-title">Features</h2>
+
+      <!-- Grammar Checking Status -->
+      <div class="ghost-feature-item">
+        <div class="ghost-feature-header">
+          <div class="ghost-feature-icon ghost-feature-icon--grammar">✓</div>
+          <div class="ghost-feature-info">
+            <div class="ghost-feature-name">Grammar Checking</div>
+            <div class="ghost-feature-detail" id="grammar-status">Checking...</div>
+          </div>
+        </div>
+        <div class="ghost-feature-status" id="grammar-indicator">
+          <div class="ghost-spinner-sm"></div>
+        </div>
+      </div>
+
+      <!-- AI Humanization Status -->
+      <div class="ghost-feature-item">
+        <div class="ghost-feature-header">
+          <div class="ghost-feature-icon ghost-feature-icon--ai">✨</div>
+          <div class="ghost-feature-info">
+            <div class="ghost-feature-name">AI Humanization</div>
+            <div class="ghost-feature-detail" id="humanize-status">Checking...</div>
+          </div>
+        </div>
+        <div class="ghost-feature-status" id="humanize-indicator">
+          <div class="ghost-spinner-sm"></div>
+        </div>
+      </div>
+
+      <!-- AI Rewrite Status -->
+      <div class="ghost-feature-item">
+        <div class="ghost-feature-header">
+          <div class="ghost-feature-icon ghost-feature-icon--rewrite">↻</div>
+          <div class="ghost-feature-info">
+            <div class="ghost-feature-name">AI Rewrite</div>
+            <div class="ghost-feature-detail" id="rewrite-status">Checking...</div>
+          </div>
+        </div>
+        <div class="ghost-feature-status" id="rewrite-indicator">
+          <div class="ghost-spinner-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credits Section (for paid tier) -->
+    <div class="ghost-section" id="credits-section" style="display: none;">
+      <h2 class="ghost-section-title">Credits</h2>
+      <div class="ghost-credits-display">
+        <div class="ghost-credits-main">
+          <div class="ghost-credits-number" id="credits-remaining">0</div>
+          <div class="ghost-credits-label">credits remaining</div>
+        </div>
+        <div class="ghost-credits-tier" id="credits-tier">Free Tier</div>
+      </div>
+      <div class="ghost-credits-bar">
+        <div class="ghost-credits-fill" id="credits-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Upgrade Prompt (for free tier / no credits) -->
+    <div class="ghost-section ghost-upgrade-section" id="upgrade-section" style="display: none;">
+      <div class="ghost-upgrade-content">
+        <div class="ghost-upgrade-icon">🎁</div>
+        <div class="ghost-upgrade-title" id="upgrade-title">Enable AI Features</div>
+        <div class="ghost-upgrade-message" id="upgrade-message">Get 100 free credits to try AI humanization and rewriting</div>
+      </div>
+      <button class="ghost-button-primary ghost-upgrade-button" id="upgrade-button">
+        <span id="upgrade-button-text">Get Free Credits</span>
+        <span class="ghost-button-arrow">→</span>
+      </button>
+    </div>
+
+    <!-- Two-Stage Pipeline Info -->
+    <div class="ghost-section">
+      <h2 class="ghost-section-title">How It Works</h2>
+      <div class="ghost-info-box">
+        <div class="ghost-pipeline-visual">
+          <div class="ghost-pipeline-step">
+            <div class="ghost-pipeline-number">1</div>
+            <div class="ghost-pipeline-text">
+              <div class="ghost-pipeline-name">AI Processing</div>
+              <div class="ghost-pipeline-desc">Humanize or rewrite your text</div>
+            </div>
+          </div>
+          <div class="ghost-pipeline-arrow">→</div>
+          <div class="ghost-pipeline-step">
+            <div class="ghost-pipeline-number">2</div>
+            <div class="ghost-pipeline-text">
+              <div class="ghost-pipeline-name">Grammar Check</div>
+              <div class="ghost-pipeline-desc">Automatic grammar validation</div>
+            </div>
+          </div>
+        </div>
+        <div class="ghost-info-note">
+          Every AI request automatically checks grammar for perfect results
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Links -->
+    <div class="ghost-section ghost-section--links">
+      <button class="ghost-link-button" id="settings-button">
+        <span class="ghost-link-icon">⚙️</span>
+        <span class="ghost-link-text">Settings</span>
+        <span class="ghost-link-arrow">→</span>
+      </button>
+      <button class="ghost-link-button" id="keyboard-button">
+        <span class="ghost-link-icon">⌨️</span>
+        <span class="ghost-link-text">Keyboard Shortcuts</span>
+        <span class="ghost-link-arrow">→</span>
+      </button>
+      <button class="ghost-link-button" id="billing-button" style="display: none;">
+        <span class="ghost-link-icon">💳</span>
+        <span class="ghost-link-text">Billing Portal</span>
+        <span class="ghost-link-arrow">→</span>
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="ghost-popup-footer">
+      <div class="ghost-version">v1.0.0</div>
+      <div class="ghost-links">
+        <a href="#" class="ghost-footer-link" id="help-link">Help</a>
+        <span class="ghost-footer-divider">•</span>
+        <a href="#" class="ghost-footer-link" id="privacy-link">Privacy</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

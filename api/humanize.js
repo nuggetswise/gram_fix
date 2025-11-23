@@ -128,13 +128,16 @@ export default async function handler(req) {
     // Get updated credit balance
     const creditsRemaining = await getCreditBalance(user.id);
 
-    // Return success response
+    // Return success response with grammar check flag
     return new Response(
       JSON.stringify({
         success: true,
         result: result,
         credits_remaining: creditsRemaining,
-        provider: provider
+        provider: provider,
+        // Flag to trigger automatic grammar checking on frontend
+        should_check_grammar: true,
+        pipeline_stage: 'ai_complete' // Frontend will run stage 2: grammar check
       }),
       {
         status: 200,

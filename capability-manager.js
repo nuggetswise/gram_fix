@@ -306,8 +306,9 @@ class CapabilityManager {
 
   /**
    * Humanize text using Cloud API (Gemini primary, OpenAI fallback)
+   * TWO-STAGE PIPELINE: 1) AI Humanize → 2) Auto Grammar Check
    * @param {string} text - Text to humanize
-   * @returns {Promise<string>} Humanized text
+   * @returns {Promise<Object>} Result with humanized text and grammar errors
    */
   async humanizeText(text) {
     // Check if API available
@@ -316,6 +317,9 @@ class CapabilityManager {
     }
 
     try {
+      console.log('[GhostWrite] Starting two-stage pipeline: AI Humanize → Grammar Check');
+
+      // STAGE 1: AI Humanization
       const response = await fetch(`${this.apiEndpoint}/api/humanize`, {
         method: 'POST',
         headers: {
@@ -339,12 +343,31 @@ class CapabilityManager {
       const data = await response.json();
 
       // Update credit balance
-      this.state.cloudAPI.credits = data.creditsRemaining || this.state.cloudAPI.credits - 1;
+      this.state.cloudAPI.credits = data.credits_remaining || this.state.cloudAPI.credits - 1;
       this.updateMode();
       await this.updateBadge();
       this.notifyListeners();
 
-      return data.result;
+      // STAGE 2: Automatic Grammar Check (if enabled and Harper loaded)
+      let grammarErrors = [];
+      if (data.should_check_grammar && this.state.harper.loaded) {
+        console.log('[GhostWrite] Stage 2: Running automatic grammar check on AI output');
+        try {
+          grammarErrors = await this.checkGrammar(data.result);
+          console.log(`[GhostWrite] Found ${grammarErrors.length} grammar issues in AI output`);
+        } catch (grammarError) {
+          console.warn('[GhostWrite] Grammar check failed, returning AI result without grammar info:', grammarError);
+        }
+      }
+
+      // Return complete pipeline result
+      return {
+        text: data.result,
+        grammarErrors: grammarErrors,
+        provider: data.provider,
+        creditsRemaining: data.credits_remaining,
+        pipelineComplete: true
+      };
     } catch (error) {
       console.error('[GhostWrite] Humanization failed:', error);
       throw error;
@@ -353,8 +376,9 @@ class CapabilityManager {
 
   /**
    * Rewrite text using Cloud API
+   * TWO-STAGE PIPELINE: 1) AI Rewrite → 2) Auto Grammar Check
    * @param {string} text - Text to rewrite
-   * @returns {Promise<string>} Rewritten text
+   * @returns {Promise<Object>} Result with rewritten text and grammar errors
    */
   async rewriteText(text) {
     if (!this.state.cloudAPI.connected || this.state.cloudAPI.credits < 1) {
@@ -362,6 +386,9 @@ class CapabilityManager {
     }
 
     try {
+      console.log('[GhostWrite] Starting two-stage pipeline: AI Rewrite → Grammar Check');
+
+      // STAGE 1: AI Rewrite
       const response = await fetch(`${this.apiEndpoint}/api/rewrite`, {
         method: 'POST',
         headers: {
@@ -385,12 +412,31 @@ class CapabilityManager {
       const data = await response.json();
 
       // Update credit balance
-      this.state.cloudAPI.credits = data.creditsRemaining || this.state.cloudAPI.credits - 1;
+      this.state.cloudAPI.credits = data.credits_remaining || this.state.cloudAPI.credits - 1;
       this.updateMode();
       await this.updateBadge();
       this.notifyListeners();
 
-      return data.result;
+      // STAGE 2: Automatic Grammar Check (if enabled and Harper loaded)
+      let grammarErrors = [];
+      if (data.should_check_grammar && this.state.harper.loaded) {
+        console.log('[GhostWrite] Stage 2: Running automatic grammar check on AI output');
+        try {
+          grammarErrors = await this.checkGrammar(data.result);
+          console.log(`[GhostWrite] Found ${grammarErrors.length} grammar issues in AI output`);
+        } catch (grammarError) {
+          console.warn('[GhostWrite] Grammar check failed, returning AI result without grammar info:', grammarError);
+        }
+      }
+
+      // Return complete pipeline result
+      return {
+        text: data.result,
+        grammarErrors: grammarErrors,
+        provider: data.provider,
+        creditsRemaining: data.credits_remaining,
+        pipelineComplete: true
+      };
     } catch (error) {
       console.error('[GhostWrite] Rewrite failed:', error);
       throw error;

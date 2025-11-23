@@ -1,0 +1,116 @@
+<!-- GhostWrite Correction Preview Component -->
+<!-- Shows grammar corrections and AI improvements with accept/reject actions -->
+
+<div id="ghostwrite-preview" class="ghost-preview" style="display: none;">
+  <!-- Preview Header -->
+  <div class="ghost-preview-header">
+    <div class="ghost-preview-title">
+      <span class="ghost-preview-icon"></span>
+      <span class="ghost-preview-heading" id="ghost-preview-heading">Suggestions</span>
+    </div>
+    <button class="ghost-button-icon ghost-close" aria-label="Close preview">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Two-Stage Pipeline Results -->
+  <div class="ghost-preview-body">
+    <!-- Stage 1: AI Result (if applicable) -->
+    <div class="ghost-result-section" id="ghost-ai-result" style="display: none;">
+      <div class="ghost-result-label">
+        <span class="ghost-result-badge ghost-badge--ai">AI Improved</span>
+        <span class="ghost-result-provider" id="ghost-provider-label"></span>
+      </div>
+      <div class="ghost-result-content">
+        <div class="ghost-text-comparison">
+          <div class="ghost-text-before">
+            <div class="ghost-text-label">Original</div>
+            <div class="ghost-text-box ghost-text-box--original" id="ghost-original-text"></div>
+          </div>
+          <div class="ghost-text-arrow">→</div>
+          <div class="ghost-text-after">
+            <div class="ghost-text-label">AI Improved</div>
+            <div class="ghost-text-box ghost-text-box--improved" id="ghost-ai-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 2: Grammar Errors (if any found) -->
+    <div class="ghost-result-section" id="ghost-grammar-result" style="display: none;">
+      <div class="ghost-result-label">
+        <span class="ghost-result-badge ghost-badge--grammar">Grammar Issues</span>
+        <span class="ghost-error-count" id="ghost-error-count">0 issues found</span>
+      </div>
+      <div class="ghost-grammar-list" id="ghost-grammar-list">
+        <!-- Grammar errors will be inserted here dynamically -->
+        <!-- Example error item structure:
+        <div class="ghost-error-item">
+          <div class="ghost-error-text">
+            <span class="ghost-error-word">recieve</span>
+            <span class="ghost-error-arrow">→</span>
+            <span class="ghost-error-fix">receive</span>
+          </div>
+          <div class="ghost-error-message">Spelling error</div>
+        </div>
+        -->
+      </div>
+    </div>
+
+    <!-- No Issues Found -->
+    <div class="ghost-result-section ghost-result-empty" id="ghost-no-issues" style="display: none;">
+      <div class="ghost-empty-icon">✓</div>
+      <div class="ghost-empty-message">No grammar issues found</div>
+      <div class="ghost-empty-submessage">Your text looks great!</div>
+    </div>
+
+    <!-- Pipeline Complete Indicator -->
+    <div class="ghost-pipeline-complete" id="ghost-pipeline-complete" style="display: none;">
+      <div class="ghost-complete-icon">✨</div>
+      <div class="ghost-complete-message">Two-stage check complete</div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="ghost-preview-footer">
+    <div class="ghost-actions">
+      <button class="ghost-button-secondary ghost-reject" id="ghost-reject-btn">
+        <span class="ghost-button-icon">✗</span>
+        <span class="ghost-button-label">Reject</span>
+      </button>
+      <button class="ghost-button-primary ghost-accept" id="ghost-accept-btn">
+        <span class="ghost-button-icon">✓</span>
+        <span class="ghost-button-label">Accept</span>
+      </button>
+    </div>
+
+    <!-- Credits Used Indicator -->
+    <div class="ghost-preview-meta" id="ghost-credits-used" style="display: none;">
+      <span class="ghost-meta-icon">💳</span>
+      <span class="ghost-meta-text">1 credit used</span>
+      <span class="ghost-meta-remaining" id="ghost-meta-remaining"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Grammar Error Detail Tooltip Template (cloned for each error) -->
+<template id="ghost-error-item-template">
+  <div class="ghost-error-item">
+    <div class="ghost-error-header">
+      <span class="ghost-error-type"></span>
+      <button class="ghost-error-apply" aria-label="Apply this fix">
+        <span>Apply</span>
+      </button>
+    </div>
+    <div class="ghost-error-content">
+      <div class="ghost-error-text">
+        <span class="ghost-error-word"></span>
+        <span class="ghost-error-arrow">→</span>
+        <span class="ghost-error-fix"></span>
+      </div>
+      <div class="ghost-error-message"></div>
+    </div>
+  </div>
+</template>
