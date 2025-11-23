@@ -1,0 +1,75 @@
+<!-- GhostWrite Ghost Menu Component -->
+<!-- This component appears near text selection and provides grammar + AI actions -->
+
+<div id="ghostwrite-menu" class="ghost-menu" data-theme="auto" style="display: none;">
+  <!-- Two-Stage Pipeline Progress Indicator -->
+  <div class="ghost-pipeline-progress" style="display: none;">
+    <div class="ghost-progress-stage" data-stage="ai">
+      <div class="ghost-progress-dot"></div>
+      <span class="ghost-progress-label">AI Processing</span>
+    </div>
+    <div class="ghost-progress-connector"></div>
+    <div class="ghost-progress-stage" data-stage="grammar">
+      <div class="ghost-progress-dot"></div>
+      <span class="ghost-progress-label">Grammar Check</span>
+    </div>
+  </div>
+
+  <!-- Main Action Buttons -->
+  <div class="ghost-menu-actions">
+    <!-- Grammar Check Button (FREE - always available) -->
+    <button class="ghost-button" data-action="fix-grammar" aria-label="Check and fix grammar">
+      <span class="ghost-button-icon">✓</span>
+      <span class="ghost-button-label">Fix Grammar</span>
+    </button>
+
+    <!-- AI Humanize Button (PAID - requires credits) -->
+    <button class="ghost-button ghost-button--premium" data-action="humanize" aria-label="Humanize AI-generated text">
+      <span class="ghost-button-icon">✨</span>
+      <span class="ghost-button-label">Humanize</span>
+      <span class="ghost-button-badge ghost-badge--trial" style="display: none;">Trial</span>
+      <span class="ghost-button-badge ghost-badge--locked" style="display: none;">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+          <path d="M8 4h-.5V3a2.5 2.5 0 00-5 0v1H2a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V5a1 1 0 00-1-1zM3.5 3a1.5 1.5 0 013 0v1h-3V3z"/>
+        </svg>
+      </span>
+    </button>
+
+    <!-- AI Rewrite Button (PAID - requires credits) -->
+    <button class="ghost-button ghost-button--premium" data-action="rewrite" aria-label="Rewrite for clarity">
+      <span class="ghost-button-icon">↻</span>
+      <span class="ghost-button-label">Rewrite</span>
+      <span class="ghost-button-badge ghost-badge--trial" style="display: none;">Trial</span>
+      <span class="ghost-button-badge ghost-badge--locked" style="display: none;">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+          <path d="M8 4h-.5V3a2.5 2.5 0 00-5 0v1H2a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V5a1 1 0 00-1-1zM3.5 3a1.5 1.5 0 013 0v1h-3V3z"/>
+        </svg>
+      </span>
+    </button>
+  </div>
+
+  <!-- Credit Counter (shows when AI features available) -->
+  <div class="ghost-credits" style="display: none;">
+    <span class="ghost-credits-count" id="ghost-credits-count">0</span>
+    <span class="ghost-credits-label">credits</span>
+  </div>
+</div>
+
+<!-- Ghost Menu Loading Overlay -->
+<div id="ghostwrite-menu-loading" class="ghost-menu-loading" style="display: none;">
+  <div class="ghost-spinner-container">
+    <svg class="ghost-spinner" width="24" height="24" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" stroke-width="3" fill="none" stroke="currentColor"/>
+    </svg>
+    <div class="ghost-loading-text">
+      <div class="ghost-loading-stage" id="ghost-stage-ai">
+        <span class="ghost-loading-icon">🤖</span>
+        <span class="ghost-loading-label">AI Processing...</span>
+      </div>
+      <div class="ghost-loading-stage" id="ghost-stage-grammar" style="display: none;">
+        <span class="ghost-loading-icon">✓</span>
+        <span class="ghost-loading-label">Checking grammar...</span>
+      </div>
+    </div>
+  </div>
+</div>
