@@ -3,8 +3,8 @@
  * Manages capability detection, API communication, and message handling
  */
 
-// Import CapabilityManager
-importScripts('capability-manager.js');
+// Import CapabilityManager (ES6 module syntax)
+import { CapabilityManager } from './capability-manager.js';
 
 // Initialize capability manager
 const capabilityManager = new CapabilityManager();

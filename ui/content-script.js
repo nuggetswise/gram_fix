@@ -61,7 +61,7 @@ class GhostWriteUI {
 
     const template = document.createElement('template');
     template.innerHTML = html.trim();
-    this.menuElement = template.content.firstChild;
+    this.menuElement = template.content.firstElementChild;
 
     document.body.appendChild(this.menuElement);
 
@@ -80,7 +80,7 @@ class GhostWriteUI {
 
     const template = document.createElement('template');
     template.innerHTML = html.trim();
-    this.previewElement = template.content.firstChild;
+    this.previewElement = template.content.firstElementChild;
 
     document.body.appendChild(this.previewElement);
 

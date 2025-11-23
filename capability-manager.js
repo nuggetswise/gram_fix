@@ -107,21 +107,31 @@ class CapabilityManager {
     const startTime = performance.now();
 
     try {
+      console.log('[GhostWrite] Loading Harper WASM...');
+
+      // Get Harper URL
+      const harperUrl = chrome.runtime.getURL('harper_dist/harper.js');
+      console.log('[GhostWrite] Harper URL:', harperUrl);
+
       // Import Harper.js module
-      const { LocalLinter, binary, Dialect } = await import(
-        chrome.runtime.getURL('harper_dist/harper.js')
-      );
+      const harperModule = await import(harperUrl);
+      console.log('[GhostWrite] Harper module loaded:', Object.keys(harperModule));
+
+      const { LocalLinter, binary, Dialect } = harperModule;
 
       // Create linter instance with American English dialect
+      console.log('[GhostWrite] Creating LocalLinter instance...');
       this.harperInstance = new LocalLinter({
         binary: binary,
         dialect: Dialect.American
       });
 
       // Setup (downloads and compiles WASM)
+      console.log('[GhostWrite] Setting up WASM...');
       await this.harperInstance.setup();
 
       const loadTime = performance.now() - startTime;
+      console.log('[GhostWrite] Harper loaded successfully in', loadTime.toFixed(0), 'ms');
 
       return {
         loaded: true,
@@ -130,6 +140,7 @@ class CapabilityManager {
       };
     } catch (error) {
       console.error('[GhostWrite] Harper load failed:', error);
+      console.error('[GhostWrite] Error stack:', error.stack);
       return {
         loaded: false,
         error: error.message,
@@ -582,7 +593,5 @@ class CapabilityManager {
   }
 }
 
-// Export for use in background.js
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CapabilityManager;
-}
+// Export for use in background.js (ES6 module)
+export { CapabilityManager };
