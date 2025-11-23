@@ -107,17 +107,19 @@ class CapabilityManager {
     const startTime = performance.now();
 
     try {
-      // Method 1: Try importing from NPM package (if using build system)
-      if (typeof Harper !== 'undefined') {
-        this.harperInstance = await Harper.init();
-      }
-      // Method 2: Load WASM directly (fallback)
-      else {
-        const response = await fetch(chrome.runtime.getURL('harper.wasm'));
-        const wasmBytes = await response.arrayBuffer();
-        const wasmModule = await WebAssembly.instantiate(wasmBytes);
-        this.harperInstance = wasmModule.instance.exports;
-      }
+      // Import Harper.js module
+      const { LocalLinter, binary, Dialect } = await import(
+        chrome.runtime.getURL('harper_dist/harper.js')
+      );
+
+      // Create linter instance with American English dialect
+      this.harperInstance = new LocalLinter({
+        binary: binary,
+        dialect: Dialect.American
+      });
+
+      // Setup (downloads and compiles WASM)
+      await this.harperInstance.setup();
 
       const loadTime = performance.now() - startTime;
 
@@ -454,12 +456,27 @@ class CapabilityManager {
     }
 
     try {
-      // Call Harper WASM (API depends on actual harper.js implementation)
-      // This is a placeholder - adjust based on real API
-      const errors = await this.harperInstance.lint(text);
+      // Call Harper.js lint method
+      const lints = await this.harperInstance.lint(text, { language: 'plaintext' });
 
-      // Expected format: [{ span: [start, end], message: "...", suggestion: "..." }]
-      return errors || [];
+      // Transform Harper Lint objects to our expected format
+      const errors = lints.map(lint => {
+        const span = lint.span();
+        const suggestions = lint.suggestions();
+
+        return {
+          span: [span.start, span.end],
+          message: lint.message(),
+          problem_text: lint.get_problem_text(),
+          lint_kind: lint.lint_kind_pretty(),
+          suggestions: suggestions.map(sug => ({
+            text: sug.get_replacement_text(),
+            kind: sug.kind()
+          }))
+        };
+      });
+
+      return errors;
     } catch (error) {
       console.error('[GhostWrite] Grammar check failed:', error);
       return [];

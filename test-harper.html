@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harper Grammar Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #6366F1;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    button {
+      background: #6366F1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    button:hover {
+      background: #4f46e5;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .status.loading {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .errors {
+      margin-top: 20px;
+    }
+    .error-item {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+    }
+    .error-item strong {
+      color: #991b1b;
+    }
+    .error-item .suggestion {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+    .no-errors {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Harper Grammar Test</h1>
+    <p>Test the Harper.js grammar checking integration for GhostWrite.</p>
+
+    <textarea id="text-input" placeholder="Type some text with grammar errors to test...">This is a simple sentance with some erors. Its important to check grammer carefully.</textarea>
+
+    <button id="check-btn">Check Grammar</button>
+
+    <div id="status"></div>
+    <div id="errors"></div>
+  </div>
+
+  <script type="module">
+    import { LocalLinter, binary, Dialect } from './harper_dist/harper.js';
+
+    const textInput = document.getElementById('text-input');
+    const checkBtn = document.getElementById('check-btn');
+    const statusDiv = document.getElementById('status');
+    const errorsDiv = document.getElementById('errors');
+
+    let linter = null;
+
+    async function initHarper() {
+      showStatus('Initializing Harper WASM...', 'loading');
+
+      try {
+        linter = new LocalLinter({
+          binary: binary,
+          dialect: Dialect.American
+        });
+
+        await linter.setup();
+        showStatus('✓ Harper initialized successfully!', 'success');
+        checkBtn.disabled = false;
+      } catch (error) {
+        showStatus(`✗ Failed to initialize Harper: ${error.message}`, 'error');
+        console.error('Harper init error:', error);
+      }
+    }
+
+    async function checkGrammar() {
+      if (!linter) {
+        showStatus('Harper not initialized', 'error');
+        return;
+      }
+
+      const text = textInput.value.trim();
+      if (!text) {
+        showStatus('Please enter some text', 'error');
+        return;
+      }
+
+      showStatus('Checking grammar...', 'loading');
+      checkBtn.disabled = true;
+
+      try {
+        const lints = await linter.lint(text, { language: 'plaintext' });
+
+        if (lints.length === 0) {
+          errorsDiv.innerHTML = '<div class="no-errors">✨ No grammar errors found!</div>';
+          showStatus(`✓ Check complete - no errors found`, 'success');
+        } else {
+          displayErrors(lints);
+          showStatus(`✓ Found ${lints.length} grammar issue${lints.length > 1 ? 's' : ''}`, 'success');
+        }
+      } catch (error) {
+        showStatus(`✗ Grammar check failed: ${error.message}`, 'error');
+        console.error('Grammar check error:', error);
+      } finally {
+        checkBtn.disabled = false;
+      }
+    }
+
+    function displayErrors(lints) {
+      errorsDiv.innerHTML = '<div class="errors">' +
+        lints.map((lint, index) => {
+          const span = lint.span();
+          const suggestions = lint.suggestions();
+
+          return `
+            <div class="error-item">
+              <strong>${index + 1}. ${lint.lint_kind_pretty()}</strong><br>
+              <em>"${lint.get_problem_text()}"</em> (chars ${span.start}-${span.end})<br>
+              ${lint.message()}
+              ${suggestions.length > 0 ? '<br>Suggestions: ' + suggestions.map(s =>
+                `<span class="suggestion">${s.get_replacement_text()}</span>`
+              ).join(' ') : ''}
+            </div>
+          `;
+        }).join('') +
+        '</div>';
+    }
+
+    function showStatus(message, type) {
+      statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    checkBtn.addEventListener('click', checkGrammar);
+
+    // Initialize on load
+    checkBtn.disabled = true;
+    initHarper();
+  </script>
+</body>
+</html>
