@@ -233,7 +233,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     <button class="accept">✓ Accept</button>
     <button class="reject">✗ Reject</button>
   </div>
-  <div class="meta">Grammar • Harper</div>
+  <div class="meta">Grammar</div>
 </div>
 ```
 
@@ -406,39 +406,28 @@ Keep the same tone and meaning. Output only the improved text.
 
 ---
 
-### Phase 8: Liquid Design System
-**Goal**: Create high-end visual design matching Linear/Vercel aesthetic
+### Phase 8: Design System Implementation
+**Goal**: Implement GhostWrite design system across all components
+
+**Reference**: See [GHOSTWRITE_DESIGN_SYSTEM.md](./GHOSTWRITE_DESIGN_SYSTEM.md) for complete specifications
 
 **Tasks**:
-- [ ] Implement glassmorphic UI (backdrop-blur)
-- [ ] Create neutral color palette
-- [ ] Add smooth animations (200ms transitions)
-- [ ] Design hover states with subtle glow
-- [ ] Ensure dark mode compatibility
-- [ ] Test menu on various websites (Gmail, Docs, Twitter)
+- [ ] Set up CSS custom properties from design system tokens
+- [ ] Implement glassmorphic UI with backdrop-blur
+- [ ] Apply color system (light/dark mode support)
+- [ ] Implement typography scale and font loading
+- [ ] Add animation system (transitions, easing functions)
+- [ ] Style all components per design system specs
+- [ ] Test visual consistency across websites (Gmail, Docs, Twitter)
+- [ ] Verify accessibility standards (WCAG 2.1 AA)
 
-**Design Principles**:
-- Minimal footprint (no clutter)
-- Blurred backgrounds (context-aware)
-- Subtle shadows (depth without distraction)
-- Fast transitions (snappy, not sluggish)
-- High contrast for readability
+**Key Deliverables**:
+- CSS architecture with BEM naming
+- Complete design token implementation
+- Auto-detecting dark mode
+- Accessible focus states and keyboard navigation
 
-**CSS Variables**:
-```css
-:root {
-  --ghost-bg: rgba(255, 255, 255, 0.9);
-  --ghost-border: rgba(0, 0, 0, 0.1);
-  --ghost-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --ghost-blur: blur(10px);
-  --ghost-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --ghost-accent: #6366f1; /* Indigo */
-  --ghost-success: #10b981; /* Green */
-  --ghost-error: #ef4444; /* Red */
-}
-```
-
-**Deliverable**: Premium, professional UI that works everywhere
+**Deliverable**: Fully implemented design system with professional UI
 
 ---
 
@@ -447,7 +436,7 @@ Keep the same tone and meaning. Output only the improved text.
 
 **Tasks**:
 - [ ] Create `popup.html` with status dashboard
-- [ ] Show Harper status (✅ Active / ❌ Error)
+- [ ] Show grammar engine status (✅ Active / ❌ Error)
 - [ ] Display credit balance and usage stats
 - [ ] Add enable/disable toggle
 - [ ] Show upgrade CTA for trial users
@@ -585,7 +574,7 @@ Perfect for:
 - Improving writing clarity
 - Students, writers, professionals
 
-Free tier: Unlimited grammar checking with Harper engine
+Free tier: Unlimited grammar checking
 Paid tier: 1000+ AI credits/month for advanced features
 ```
 
